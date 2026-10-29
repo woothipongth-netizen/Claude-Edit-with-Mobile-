@@ -18,16 +18,18 @@
 | 4 | [docs/04-workflow.md](docs/04-workflow.md) | **สั่งงานตัดคลิปจริง** และขั้นตอนที่ Claude ทำ |
 | 5 | [docs/05-lessons.md](docs/05-lessons.md) | บทเรียนจากการทดสอบ สิ่งที่ห้ามพลาด |
 | 6 | [docs/06-faq.md](docs/06-faq.md) | คำถามที่เจอบ่อย |
+| 7 | [docs/07-onboarding.md](docs/07-onboarding.md) | ชุดคำถามที่ Claude ใช้สัมภาษณ์ธุรกิจของคุณ |
 
 [CLAUDE.md](CLAUDE.md) คือคำสั่งที่ Claude อ่านเองทุกครั้งที่เริ่มแชท
-[brand.json](brand.json) คือ **ไฟล์เดียวที่ต้องแก้** ให้คลิปเป็นแบรนด์ของคุณ (ชื่อร้าน ชื่อช่าง สี ปุ่มจองคิว)
+[brand.json](brand.json) และ [business-profile.md](business-profile.md) คือข้อมูลธุรกิจของคุณ Claude กรอกให้จากการสัมภาษณ์ครั้งแรก
 
 ## โครงสร้างไฟล์
 
 ```
 ├── README.md                  ← ไฟล์นี้
 ├── CLAUDE.md                  ← คำสั่งที่ Claude อ่านทุกครั้งที่เริ่มแชท
-├── brand.json                 ← ข้อมูลแบรนด์ของคุณ (แก้ไฟล์นี้ไฟล์เดียว)
+├── brand.json                 ← ชื่อร้าน ชื่อคน สี ฟอนต์ ปุ่มชวน (ใช้ในเทมเพลต)
+├── business-profile.md        ← โปรไฟล์ธุรกิจจากการสัมภาษณ์ (Claude อ่านทุกงาน)
 ├── docs/                      ← คู่มือ (ภาษาไทย)
 ├── scripts/
 │   ├── setup.sh               ← ติดตั้งโปรแกรมในเครื่อง cloud (รันครั้งแรกของทุกแชท)
