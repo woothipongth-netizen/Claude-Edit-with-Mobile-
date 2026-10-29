@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# มิกซ์เสียง: เสียงพากย์ + เพลงพื้นหลัง (ถ้ามี, ลดเสียงลงเองเมื่อมีคนพูด) + เสียง whoosh ตอนเปลี่ยนช่วง + sparkle ตอนจบ
+#
+# ใช้: scripts/mix_audio.sh <เสียงพากย์> <เพลง หรือ none> <ผลลัพธ์.wav> <ความยาว> "<เวลา whoosh คั่นด้วยช่องว่าง>" [เวลา sparkle]
+#   scripts/mix_audio.sh vo.mp3 none     mix.wav 61 "3.6 14.0 31.9 43.3" 55.5
+#   scripts/mix_audio.sh vo.mp3 song.mp3 mix.wav 61 "3.6 14.0 31.9 43.3" 55.5
+#
+# กฎของร้าน: เพลงต้องเป็นไฟล์ที่ผู้ใช้ส่งมาเท่านั้น ห้ามสร้างหรือหาเพลงเอง ถ้าไม่มีให้ใส่ none
+#
+# เสียงเอฟเฟกต์มาจาก skill media-use (Pixabay license ใช้เชิงพาณิชย์ได้)
+# ระดับเพลงตามแนวทาง media-use: ~-18 dB ใต้เสียงพูด (BGM_BED_VOLUME 0.12)
+set -euo pipefail
+VO="$1"; BGM="$2"; OUT="$3"; DUR="$4"; WHOOSH="$5"; SPARKLE="${6:-}"
+SFX="$(cd "$(dirname "$0")/.." && pwd)/.agents/skills/media-use/audio/assets/sfx"
+
+if [ "$BGM" = "none" ]; then
+  inputs=(-i "$VO")
+  filters="[0:a]aresample=48000,apad,atrim=0:$DUR[vo];"
+  mix="[vo]"; n=1; idx=1
+else
+  inputs=(-i "$VO" -i "$BGM")
+  filters="[0:a]aresample=48000,apad,atrim=0:$DUR,asplit=2[vo][key];"
+  # เพลงลดลงอัตโนมัติเมื่อเสียงพากย์ดัง (sidechain) แล้วกลับขึ้นช่วงเงียบ ฐานเสียงราว -18 dB ตาม media-use
+  filters+="[1:a]aresample=48000,loudnorm=I=-20,volume=0.5,afade=t=out:st=$(python3 -c "print($DUR - 3)"):d=3[bgmraw];"
+  filters+="[bgmraw][key]sidechaincompress=threshold=0.02:ratio=8:attack=20:release=400[bgm];"
+  mix="[vo][bgm]"; n=2; idx=2
+fi
+for t in $WHOOSH; do
+  inputs+=(-i "$SFX/whoosh-short.mp3")
+  ms=$(python3 -c "print(int(max(0, $t - 0.3) * 1000))")
+  filters+="[$idx:a]aresample=48000,volume=0.35,adelay=${ms}|${ms}[w$idx];"
+  mix+="[w$idx]"; n=$((n + 1)); idx=$((idx + 1))
+done
+if [ -n "$SPARKLE" ]; then
+  inputs+=(-i "$SFX/sparkle.mp3")
+  ms=$(python3 -c "print(int($SPARKLE * 1000 + 300))")
+  filters+="[$idx:a]aresample=48000,volume=0.4,adelay=${ms}|${ms}[sp];"
+  mix+="[sp]"; n=$((n + 1))
+fi
+filters+="${mix}amix=inputs=$n:normalize=0,atrim=0:$DUR,alimiter=limit=0.95[o]"
+ffmpeg -v error -y "${inputs[@]}" -filter_complex "$filters" -map "[o]" -ar 48000 "$OUT"
+echo "มิกซ์แล้ว: $OUT"

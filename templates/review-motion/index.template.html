@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="th" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Brand"; font-weight: 500; src: url("fonts/brand-thai-500-normal.woff2"); unicode-range: U+0E01-0E5B, U+200C-200D, U+25CC; }
+      @font-face { font-family: "Brand"; font-weight: 500; src: url("fonts/brand-latin-500-normal.woff2"); unicode-range: U+0000-00FF, U+2000-206F; }
+      @font-face { font-family: "Brand"; font-weight: 700; src: url("fonts/brand-thai-700-normal.woff2"); unicode-range: U+0E01-0E5B, U+200C-200D, U+25CC; }
+      @font-face { font-family: "Brand"; font-weight: 700; src: url("fonts/brand-latin-700-normal.woff2"); unicode-range: U+0000-00FF, U+2000-206F; }
+      @font-face { font-family: "Brand"; font-weight: 800; src: url("fonts/brand-thai-800-normal.woff2"); unicode-range: U+0E01-0E5B, U+200C-200D, U+25CC; }
+      @font-face { font-family: "Brand"; font-weight: 800; src: url("fonts/brand-latin-800-normal.woff2"); unicode-range: U+0000-00FF, U+2000-206F; }
+      :root {
+        --gold: {{ACCENT}};
+        --gold-hi: {{ACCENT_LIGHT}};
+        --gold-deep: {{ACCENT_DARK}};
+        --ink: #ffffff;
+        --font: "Brand", sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; font-family: var(--font); }
+
+      .shot { position: absolute; inset: 0; overflow: hidden; }
+      .shot video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+      /* สีอุ่นนุ่มแบบร้านความงาม + ขอบมืด ให้ตัวหนังสืออ่านง่าย */
+      #grade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(40,22,8,0.18), rgba(255,200,140,0.06) 50%, rgba(40,22,8,0.22)); mix-blend-mode: soft-light; }
+      #vignette {
+        position: absolute; inset: 0;
+        background:
+          radial-gradient(ellipse 85% 70% at 50% 48%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.45) 100%),
+          linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0) 24%, rgba(0,0,0,0) 58%, rgba(0,0,0,0.65) 100%);
+      }
+      #grain { position: absolute; inset: 0; overflow: hidden; opacity: 0.07; mix-blend-mode: overlay; }
+      #grain .g { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: url("{{GRAIN}}"); }
+
+      /* light leak และแฟลช (จาก transitions-light) */
+      #leak-warm { position: absolute; inset: 0; opacity: 0; background: linear-gradient(135deg, rgba(255,160,50,0.85), rgba(255,110,30,0.15) 70%); mix-blend-mode: screen; }
+      #leak-1 { position: absolute; top: -300px; left: -500px; width: 2200px; height: 2600px; opacity: 0; background: radial-gradient(ellipse at 30% 40%, rgba(255,140,30,0.95), rgba(255,140,30,0) 55%); mix-blend-mode: screen; }
+      #leak-2 { position: absolute; top: -200px; left: -300px; width: 2200px; height: 2400px; opacity: 0; background: radial-gradient(ellipse at 60% 55%, rgba(255,205,110,0.85), rgba(255,205,110,0) 55%); mix-blend-mode: screen; }
+      #flash { position: absolute; inset: 0; opacity: 0; background: #fff8ec; }
+
+      /* ตัวหนังสือทอง + แถบแสงวิ่ง (แนว text-shimmer) */
+      .shine {
+        background: linear-gradient(100deg, var(--ink) 0%, var(--ink) 40%, var(--gold-hi) 50%, var(--ink) 60%, var(--ink) 100%);
+        background-size: 300% 100%; background-position: 120% 0;
+        -webkit-background-clip: text; background-clip: text; color: transparent;
+      }
+      .shine em {
+        font-style: normal;
+        background: linear-gradient(100deg, var(--gold) 0%, var(--gold) 40%, var(--gold-hi) 50%, var(--gold) 60%, var(--gold) 100%);
+        background-size: inherit; background-position: inherit;
+        -webkit-background-clip: text; background-clip: text; color: transparent;
+      }
+
+      .hook { position: absolute; left: 0; right: 0; top: 330px; text-align: center; filter: drop-shadow(0 8px 30px rgba(0,0,0,0.7)); }
+      .hook .shine { font-size: 128px; font-weight: 800; line-height: 1.1; }
+
+      .title { position: absolute; top: 150px; left: 70px; right: 70px; display: flex; flex-direction: column; align-items: center; gap: 18px; filter: drop-shadow(0 6px 24px rgba(0,0,0,0.75)); }
+      .title-mask { overflow: hidden; padding: 34px 10px 18px; margin-top: -26px; }
+      .title .shine { display: block; text-align: center; font-size: 76px; font-weight: 800; line-height: 1.16; }
+      .title .rule { width: 180px; height: 5px; border-radius: 3px; background: linear-gradient(90deg, var(--gold-deep), var(--gold-hi), var(--gold-deep)); transform-origin: 0% 50%; }
+
+      /* ป้ายชื่อ (แนว lt-kicker-name) */
+      .lt { position: absolute; left: 70px; top: 760px; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; filter: drop-shadow(0 4px 18px rgba(0,0,0,0.6)); }
+      .lt-kickwrap { overflow: hidden; }
+      .lt-kicker { display: inline-block; font-size: 34px; font-weight: 700; color: #1a1208; background: var(--gold); padding: 6px 18px; border-radius: 6px; }
+      .lt-name { font-size: 96px; font-weight: 800; color: var(--ink); line-height: 1; }
+      .lt-base { height: 6px; width: 100%; border-radius: 3px; background: var(--gold); transform-origin: 0% 50%; }
+
+      /* ซับแบบ rail (identity "anchor" ของ embedded-captions) */
+      .line { position: absolute; left: 60px; right: 60px; bottom: 300px; text-align: center; }
+      .line span {
+        display: inline-block; padding: 20px 36px; border-radius: 22px;
+        background: linear-gradient(180deg, rgba(20,14,8,0.78), rgba(20,14,8,0.62));
+        border: 1.5px solid rgba(232,200,121,0.35);
+        color: var(--ink); font-size: 58px; font-weight: 500; line-height: 1.32;
+        box-shadow: 0 10px 34px rgba(0,0,0,0.35);
+      }
+      .line em { display: inline-block; font-style: normal; font-weight: 700; color: var(--gold); }
+
+      #endshade { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 42%, rgba(30,20,10,0.55), rgba(0,0,0,0.82)); }
+      .end { position: absolute; left: 0; right: 0; top: 620px; display: flex; flex-direction: column; align-items: center; gap: 22px; filter: drop-shadow(0 8px 30px rgba(0,0,0,0.6)); }
+      .end .shine {
+        font-size: 150px; font-weight: 800; white-space: nowrap;
+        background-image: linear-gradient(100deg, var(--gold) 0%, var(--gold) 40%, var(--gold-hi) 50%, var(--gold) 60%, var(--gold) 100%);
+      }
+      .end-rule { width: 420px; height: 4px; border-radius: 2px; background: linear-gradient(90deg, rgba(232,200,121,0), var(--gold), rgba(232,200,121,0)); }
+      .cta { position: absolute; left: 0; right: 0; top: 900px; text-align: center; }
+      .cta span {
+        display: inline-block; padding: 24px 58px; border-radius: 60px;
+        background: linear-gradient(180deg, var(--gold-hi), var(--gold) 45%, var(--gold-deep));
+        color: #1a1208; font-size: 60px; font-weight: 800; box-shadow: 0 12px 40px rgba(232,200,121,0.35);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="{{TOTAL}}" data-width="1080" data-height="1920">
+      <audio id="mix" class="clip" src="{{AUDIO}}" data-start="0" data-duration="{{TOTAL}}" data-track-index="1" data-volume="1"></audio>
+      {{SHOTS}}
+      <div id="grade"></div>
+      <div id="vignette"></div>
+      {{ELEMENTS}}
+      <div id="leak-warm"></div>
+      <div id="leak-1"></div>
+      <div id="leak-2"></div>
+      <div id="flash"></div>
+      <div id="grain"><div class="g"></div></div>
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      {{JS}}
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

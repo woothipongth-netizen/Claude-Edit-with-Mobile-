@@ -1,0 +1,14 @@
+{
+  "_comment": "ข้อมูลแบรนด์ แก้ไฟล์นี้ไฟล์เดียวให้คลิปเป็นของร้านคุณ | สีใส่เป็นรหัส hex | font ต้องมีใน @fontsource (npm)",
+  "shop_name": "xxxx",
+  "staff_name": "xxxx",
+  "staff_role": "ช่างประจำร้าน",
+  "cta": "ทักแชท จองคิวได้เลย",
+  "colors": {
+    "accent": "#e8c879",
+    "accent_light": "#fff4d6",
+    "accent_dark": "#b8913f"
+  },
+  "font": "kanit",
+  "language": "th"
+}

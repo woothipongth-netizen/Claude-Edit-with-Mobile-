@@ -1,0 +1,6 @@
+*.mp4
+__pycache__/
+*.pyc
+work/
+templates/vendor/
+*.mov
